@@ -18,7 +18,7 @@ function Search ({ search }) {
       try {
         const response = await axios({
           method: 'get',
-          url: '/api/v1/catalog/wine-search-words/',
+          url: 'http://localhost:8003/api/v1/catalog/wine-search-words/',
           params: {
             query: query
           }
@@ -93,7 +93,7 @@ function Search ({ search }) {
           <Form.Group controlId='query'>
             <Form.Label>Query</Form.Label>
             <Col>
-            <AsyncTypeahead
+              <AsyncTypeahead
                 filterBy={() => true}
                 id="query"
                 isLoading={isLoading}

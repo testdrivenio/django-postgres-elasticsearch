@@ -15,9 +15,12 @@ class WinesView(ListAPIView):
     serializer_class = WineSerializer
     filterset_class = WineFilterSet
 
+    def filter_queryset(self, request):
+        return super().filter_queryset(request)[:100]
+
 
 class WineSearchWordsView(ListAPIView):
-    queryset = WineSearchWord.objects.all()[:100]
+    queryset = WineSearchWord.objects.all()
     serializer_class = WineSearchWordSerializer
     filterset_class = WineSearchWordFilterSet
 
@@ -97,5 +100,5 @@ class ESWineSearchWordsView(APIView):
         # Extract words.
         options = response.suggest.result[0]['options']
         words = [{'word': option['text']} for option in options]
-        
+
         return Response(data=words)

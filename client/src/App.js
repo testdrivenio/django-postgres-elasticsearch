@@ -15,7 +15,7 @@ function App () {
     try {
       const response = await axios({
         method: 'get',
-        url: '/api/v1/catalog/wines/',
+        url: 'http://localhost:8003/api/v1/catalog/wines/',
         params: {
           country,
           points,

@@ -91,7 +91,7 @@ class ViewTests(APITestCase):
 
     def test_description_highlights_matched_words(self):
         response = self.client.get('/api/v1/catalog/pg-wines/?query=wine')
-        self.assertEquals('A delicious bottle of <mark>wine</mark>.', response.data[0]['description'])
+        self.assertEquals('A creamy <mark>wine</mark> with full Chardonnay flavors.', response.data[0]['description'])
 
     def test_wine_search_words_populated_on_save(self):
         WineSearchWord.objects.all().delete()
@@ -105,12 +105,12 @@ class ViewTests(APITestCase):
         )
         wine_search_words = WineSearchWord.objects.all().order_by('word').values_list('word', flat=True)
         self.assertListEqual([
-            'a', 
-            'but', 
-            'charles', 
-            'cheap', 
-            'inoffensive', 
-            'shaw', 
+            'a',
+            'but',
+            'charles',
+            'cheap',
+            'inoffensive',
+            'shaw',
             'wine'
         ], list(wine_search_words))
 

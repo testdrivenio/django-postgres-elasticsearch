@@ -18,7 +18,7 @@ class WineQuerySet(models.query.QuerySet):
             winery_headline=SearchHeadline(F('winery'), SearchQuery(query)),
             description_headline=SearchHeadline(F('description'), SearchQuery(query)),
             search_rank=SearchRank(F('search_vector'), SearchQuery(query))
-        ).filter(search_query).order_by('-search_rank')
+        ).filter(search_query).order_by('-search_rank', 'id')
 
 
 class Wine(models.Model):

@@ -1,8 +1,10 @@
 from django.urls import path
 
 from .views import (
-    WinesView, WineSearchWordsView,
-    ESWinesView, ESWineSearchWordsView
+    WinesView,
+    WineSearchWordsView,
+    ESWinesView,
+    ESWineSearchWordsView,
 )
 
 urlpatterns = [

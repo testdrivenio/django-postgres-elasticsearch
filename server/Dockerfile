@@ -1,13 +1,13 @@
-FROM python:3.8
-
-RUN [ "mkdir", "-p", "/usr/src/app" ]
+FROM python:3.9
 
 WORKDIR /usr/src/app
 
-COPY requirements.txt requirements.txt
+ENV PYTHONUNBUFFERED 1
 
-RUN [ "pip", "install", "--upgrade", "pip" ]
+ENV PYTHONDONTWRITEBYTECODE 1
 
-RUN [ "pip", "install", "-r", "requirements.txt", "--no-cache-dir" ]
+COPY ./requirements.txt .
 
-COPY . .
+RUN pip install --upgrade pip
+
+RUN pip install -r requirements.txt

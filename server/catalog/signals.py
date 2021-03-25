@@ -3,8 +3,6 @@ from django.db import connection
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from psycopg2 import sql
-
 from .models import Wine
 
 
