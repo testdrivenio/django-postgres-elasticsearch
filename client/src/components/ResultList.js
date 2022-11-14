@@ -1,31 +1,21 @@
 import React from 'react';
 
-import { sanitize } from 'dompurify';
-import { Card } from 'react-bootstrap';
+import ResultListItem from './ResultListItem';
 
 function ResultList ({ results }) {
-  const resultItems = results.map(result =>
-    <Card className='mb-3' key={result.id}>
-      <Card.Body>
-        <Card.Title
-          dangerouslySetInnerHTML={{
-            __html: `${sanitize(result.winery)} ${sanitize(result.variety)}`
-          }}
-        ></Card.Title>
-        <Card.Subtitle
-          className='mb-2 text-muted'
-        >{result.country} | {result.points} Points | ${result.price}
-        </Card.Subtitle>
-        <Card.Text dangerouslySetInnerHTML={{ __html: sanitize(result.description) }} />
-      </Card.Body>
-    </Card>
-  );
+  if (!results) {
+    return <p>Search using the left panel.</p>;
+  }
+
+  if (results.length === 0) {
+    return <p>No results found.</p>;
+  }
 
   return (
     <div>
-      {!results && <p>Search using the left panel.</p>}
-      {results && results.length === 0 && <p>No results found.</p>}
-      {resultItems}
+      {results.map(result =>
+        <ResultListItem key={result.id} result={result} />
+      )}
     </div>
   );
 }

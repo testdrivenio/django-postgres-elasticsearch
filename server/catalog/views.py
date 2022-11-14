@@ -1,6 +1,7 @@
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Match, Term
 from rest_framework.generics import ListAPIView
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
