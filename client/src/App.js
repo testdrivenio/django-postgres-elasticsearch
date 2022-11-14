@@ -10,35 +10,9 @@ import ResultList from './components/ResultList';
 import Search from './components/Search';
 
 function App () {
-  console.log('App loaded');
-  const [params, setParams] = useState({
-    country: '',
-    limit: 10,
-    offset: 0,
-    points: '',
-    query: '',
-  });
   const [results, setResults] = useState({});
 
-  const loadPreviousPage = async () => {
-    if (params.offset > 0) {
-      const newParams = { ...params, offset: params.offset - params.limit };
-      console.log(newParams);
-      setParams(newParams);
-      // setParams({ ...params, offset: params.offset - params.limit });
-      await search();
-    }
-  };
-
-  const loadNextPage = async () => {
-    if ((params.offset + params.limit) < results?.count ?? 0) {
-      setParams({ ...params, offset: params.offset + params.limit });
-      await search();
-    }
-  };
-
-  const search = async () => {
-    console.log('During search:', params);
+  const search = async (params) => {
     try {
       const response = await axios({
         method: 'get',
@@ -59,20 +33,11 @@ function App () {
       </p>
       <Row>
         <Col lg={4}>
-          <Search 
-            params={params} 
-            search={search}
-            setParams={setParams} 
-          />
+          <Search search={search} />
         </Col>
         <Col lg={8}>
           {(results?.count ?? 0) > 0 && (
-            <Paginator 
-              loadNextPage={loadNextPage}
-              loadPreviousPage={loadPreviousPage}
-              params={params}
-              results={results}
-            />
+            <Paginator results={results} search={search} />
           )}
           <ResultList results={results?.results} />
         </Col>

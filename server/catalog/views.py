@@ -1,7 +1,8 @@
+from urllib.parse import SplitResult, urlencode, urlsplit
+
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Match, Term
 from rest_framework.generics import ListAPIView
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -16,9 +17,6 @@ class WinesView(ListAPIView):
     serializer_class = WineSerializer
     filterset_class = WineFilterSet
 
-    def filter_queryset(self, request):
-        return super().filter_queryset(request)[:100]
-
 
 class WineSearchWordsView(ListAPIView):
     queryset = WineSearchWord.objects.all()
@@ -27,10 +25,42 @@ class WineSearchWordsView(ListAPIView):
 
 
 class ESWinesView(APIView):
+    def _get_previous_page(self, params):
+        limit, offset = params.get('limit'), params.get('offset')
+        if offset > 0:
+            url = self.request.build_absolute_uri()
+            old_result = urlsplit(url)
+            new_result = SplitResult(
+                old_result.scheme, 
+                old_result.netloc, 
+                old_result.path, 
+                query=urlencode({**params, 'offset': offset - limit}, doseq=True), 
+                fragment='',
+            )
+            return new_result.geturl()
+        return None
+
+    def _get_next_page(self, params, count):
+        limit, offset = params.get('limit'), params.get('offset')
+        if (offset + limit) < count:
+            url = self.request.build_absolute_uri()
+            old_result = urlsplit(url)
+            new_result = SplitResult(
+                old_result.scheme, 
+                old_result.netloc, 
+                old_result.path, 
+                query=urlencode({**params, 'offset': offset + limit}, doseq=True), 
+                fragment='',
+            )
+            return new_result.geturl()
+        return None
+
     def get(self, request, *args, **kwargs):
         query = self.request.query_params.get('query')
         country = self.request.query_params.get('country')
         points = self.request.query_params.get('points')
+        limit = int(self.request.query_params.get('limit', 10))
+        offset = int(self.request.query_params.get('offset', 0))
 
         # Build Elasticsearch query.
         search = Search(index=constants.ES_INDEX)
@@ -59,32 +89,56 @@ class ESWinesView(APIView):
         if points:
             q['filter'].append(Term(points=points))
 
-        response = search.query('bool', **q).params(size=100).execute()
+        search = search.query('bool', **q)[offset : offset + limit]
+
+        response = search.execute()
 
         if response.hits.total.value > 0:
-            return Response(data=[{
-                'id': hit.meta.id,
-                'country': hit.country,
-                'description': (
-                    hit.meta.highlight.description[0]
-                    if 'highlight' in hit.meta and 'description' in hit.meta.highlight
-                    else hit.description
-                ),
-                'points': hit.points,
-                'price': hit.price,
-                'variety': (
-                    hit.meta.highlight.variety[0]
-                    if 'highlight' in hit.meta and 'variety' in hit.meta.highlight
-                    else hit.variety
-                ),
-                'winery': (
-                    hit.meta.highlight.winery[0]
-                    if 'highlight' in hit.meta and 'winery' in hit.meta.highlight
-                    else hit.winery
-                ),
-            } for hit in response])
+            return Response(data={
+                'count': response.hits.total.value,
+                'next': self._get_next_page({
+                    'country': country,
+                    'limit': limit,
+                    'offset': offset,
+                    'points': points,
+                    'query': query,
+                }, count=response.hits.total.value),
+                'previous': self._get_previous_page({
+                    'country': country,
+                    'limit': limit,
+                    'offset': offset,
+                    'points': points,
+                    'query': query,
+                }),
+                'results': [{
+                    'id': hit.meta.id,
+                    'country': hit.country,
+                    'description': (
+                        hit.meta.highlight.description[0]
+                        if 'highlight' in hit.meta and 'description' in hit.meta.highlight
+                        else hit.description
+                    ),
+                    'points': hit.points,
+                    'price': hit.price,
+                    'variety': (
+                        hit.meta.highlight.variety[0]
+                        if 'highlight' in hit.meta and 'variety' in hit.meta.highlight
+                        else hit.variety
+                    ),
+                    'winery': (
+                        hit.meta.highlight.winery[0]
+                        if 'highlight' in hit.meta and 'winery' in hit.meta.highlight
+                        else hit.winery
+                    ),
+                } for hit in response],
+            })
         else:
-            return Response(data=[])
+            return Response(data={
+                'count': 0,
+                'next': None,
+                'previous': None,
+                'results': [],
+            })
 
 
 class ESWineSearchWordsView(APIView):

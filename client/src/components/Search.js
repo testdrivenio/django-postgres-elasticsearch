@@ -5,7 +5,7 @@ import { Formik } from 'formik';
 import { Button, Col, Form, Row } from 'react-bootstrap';
 import { AsyncTypeahead } from 'react-bootstrap-typeahead';
 
-function Search ({ params, search, setParams }) {
+function Search ({ search }) {
   const [isLoading, setLoading] = useState(false);
   const [options, setOptions] = useState([]);
 
@@ -34,16 +34,13 @@ function Search ({ params, search, setParams }) {
   };
 
   const onSubmit = async (values, actions) => {
-    console.log('Before search:', values);
-    setParams({
+    await search({
       country: values.country, 
       limit: 10,
       offset: 0,
       points: values.points, 
       query: values.query 
     });
-    console.log('Before search:', params);
-    await search();
   };
 
   return (
