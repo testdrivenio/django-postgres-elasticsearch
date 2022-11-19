@@ -12,7 +12,6 @@ def update_search_vector(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('catalog', '0002_search_vector'),
     ]

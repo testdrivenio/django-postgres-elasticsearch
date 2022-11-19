@@ -16,7 +16,6 @@ def update_wine_search_word(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('catalog', '0004_winesearchword'),
     ]

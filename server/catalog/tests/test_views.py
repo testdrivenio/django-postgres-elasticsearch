@@ -38,9 +38,9 @@ class ViewTests(APITestCase):
         self.assertEquals("58ba903f-85ff-45c2-9bac-6d0732544841", response.data[0]['id'])
 
     def test_query_matches_winery(self):
-        response = self.client.get('/api/v1/catalog/pg-wines/?query=Barnard')
-        self.assertEquals(1, len(response.data))
-        self.assertEquals("21e40285-cec8-417c-9a26-4f6748b7fa3a", response.data[0]['id'])
+      response = self.client.get('/api/v1/catalog/pg-wines/?query=Barnard')
+      self.assertEquals(1, len(response.data))
+      self.assertEquals("21e40285-cec8-417c-9a26-4f6748b7fa3a", response.data[0]['id'])
 
     def test_query_matches_description(self):
         response = self.client.get('/api/v1/catalog/pg-wines/?query=wine')

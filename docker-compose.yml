@@ -8,7 +8,7 @@ services:
       - POSTGRES_DB=perusable
       - POSTGRES_USER=perusable
       - POSTGRES_PASSWORD=perusable
-    image: postgres:14.1
+    image: postgres:15.1-alpine
     ports:
       - "5433:5432"
     volumes:
@@ -20,7 +20,9 @@ services:
       - ES_JAVA_OPTS=-Xms2g -Xmx2g
       - bootstrap.memory_lock=true
       - discovery.type=single-node
-    image: elasticsearch:7.14.2
+      # WARNING: Enable X-Pack security for production builds
+      - xpack.security.enabled=false
+    image: elasticsearch:7.17.7
     ports:
       - 9200:9200
     volumes:
@@ -50,7 +52,7 @@ services:
   client:
     build:
       context: ./client
-    command: [ "npm", "start" ]
+    command: [ "yarn", "start" ]
     container_name: perusable-client
     depends_on:
       - server

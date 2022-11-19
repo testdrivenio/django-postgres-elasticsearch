@@ -3,5 +3,5 @@
 .gitignore
 README.md
 cypress
-cypress.json
+cypress.config.js
 node_modules

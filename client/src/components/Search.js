@@ -46,7 +46,7 @@ function Search ({ search }) {
       initialValues={{
         country: '',
         points: '',
-        query: ''
+        query: '',
       }}
       onSubmit={onSubmit}
     >
