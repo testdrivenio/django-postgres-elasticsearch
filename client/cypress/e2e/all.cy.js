@@ -13,6 +13,9 @@ describe('Perusable', () => {
       .type('cabernet');
     cy.get('button').contains('Search').click();
     cy.wait('@getWines');
+    cy.get('li:has([data-cy="previous-button"])').should('have.class', 'disabled');
+    cy.get('li:has([data-cy="next-button"])').should('not.have.class', 'disabled');
+    cy.get('[data-cy="page-count"]').contains(/^\d+ of \d+ pages$/);
     cy.get('div.card-title').should('contain', 'Cabernet Sauvignon');
   });
 

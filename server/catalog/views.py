@@ -93,52 +93,44 @@ class ESWinesView(APIView):
 
         response = search.execute()
 
-        if response.hits.total.value > 0:
-            return Response(data={
-                'count': response.hits.total.value,
-                'next': self._get_next_page({
-                    'country': country,
-                    'limit': limit,
-                    'offset': offset,
-                    'points': points,
-                    'query': query,
-                }, count=response.hits.total.value),
-                'previous': self._get_previous_page({
-                    'country': country,
-                    'limit': limit,
-                    'offset': offset,
-                    'points': points,
-                    'query': query,
-                }),
-                'results': [{
-                    'id': hit.meta.id,
-                    'country': hit.country,
-                    'description': (
-                        hit.meta.highlight.description[0]
-                        if 'highlight' in hit.meta and 'description' in hit.meta.highlight
-                        else hit.description
-                    ),
-                    'points': hit.points,
-                    'price': hit.price,
-                    'variety': (
-                        hit.meta.highlight.variety[0]
-                        if 'highlight' in hit.meta and 'variety' in hit.meta.highlight
-                        else hit.variety
-                    ),
-                    'winery': (
-                        hit.meta.highlight.winery[0]
-                        if 'highlight' in hit.meta and 'winery' in hit.meta.highlight
-                        else hit.winery
-                    ),
-                } for hit in response],
-            })
-        else:
-            return Response(data={
-                'count': 0,
-                'next': None,
-                'previous': None,
-                'results': [],
-            })
+        return Response(data={
+            'count': response.hits.total.value,
+            'next': self._get_next_page({
+                'country': country,
+                'limit': limit,
+                'offset': offset,
+                'points': points,
+                'query': query,
+            }, count=response.hits.total.value),
+            'previous': self._get_previous_page({
+                'country': country,
+                'limit': limit,
+                'offset': offset,
+                'points': points,
+                'query': query,
+            }),
+            'results': [{
+                'id': hit.meta.id,
+                'country': hit.country,
+                'description': (
+                    hit.meta.highlight.description[0]
+                    if 'highlight' in hit.meta and 'description' in hit.meta.highlight
+                    else hit.description
+                ),
+                'points': hit.points,
+                'price': hit.price,
+                'variety': (
+                    hit.meta.highlight.variety[0]
+                    if 'highlight' in hit.meta and 'variety' in hit.meta.highlight
+                    else hit.variety
+                ),
+                'winery': (
+                    hit.meta.highlight.winery[0]
+                    if 'highlight' in hit.meta and 'winery' in hit.meta.highlight
+                    else hit.winery
+                ),
+            } for hit in response],
+        })
 
 
 class ESWineSearchWordsView(APIView):

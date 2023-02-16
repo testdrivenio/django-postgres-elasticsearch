@@ -125,6 +125,18 @@ class ViewTests(APITestCase):
         self.assertEqual(1, len(response.data))
         self.assertEqual('grigio', response.data[0]['word'])
 
+    def test_search_can_be_paginated(self):
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'limit': 1,
+            'offset': 1,
+        })
+        # Count is equal to total number of results in database
+        # We're loading 4 wines into the database via fixtures
+        self.assertEqual(4, response.data['count'])
+        self.assertEqual(1, len(response.data['results']))
+        self.assertIsNotNone(response.data['previous'])
+        self.assertIsNotNone(response.data['next'])
+
 
 class ESViewTests(APITestCase):
     def setUp(self):
@@ -159,20 +171,23 @@ class ESViewTests(APITestCase):
 
     def test_query_matches_variety(self):
         response = self.client.get('/api/v1/catalog/es-wines/?query=Cabernet')
-        self.assertEquals(1, len(response.data))
-        self.assertEquals("58ba903f-85ff-45c2-9bac-6d0732544841", response.data[0]['id'])
+        results = response.data['results']
+        self.assertEquals(1, len(results))
+        self.assertEquals("58ba903f-85ff-45c2-9bac-6d0732544841", results[0]['id'])
 
     def test_search_results_returned_in_correct_order(self):
         response = self.client.get('/api/v1/catalog/es-wines/?query=Chardonnay')
-        self.assertEquals(2, len(response.data))
+        results = response.data['results']
+        self.assertEquals(2, len(results))
         self.assertListEqual([
             "0082f217-3300-405b-abc6-3adcbecffd67",
             "000bbdff-30fc-4897-81c1-7947e11e6d1a",
-        ], [item['id'] for item in response.data])
+        ], [item['id'] for item in results])
 
     def test_description_highlights_matched_words(self):
         response = self.client.get('/api/v1/catalog/es-wines/?query=wine')
-        self.assertEquals('A delicious bottle of <mark>wine</mark>.', response.data[0]['description'])
+        results = response.data['results']
+        self.assertEquals('A delicious bottle of <mark>wine</mark>.', results[0]['description'])
 
     def test_suggests_words_for_spelling_mistakes(self):
         response = self.client.get('/api/v1/catalog/es-wine-search-words/?query=greegio')
@@ -180,6 +195,18 @@ class ESViewTests(APITestCase):
         self.assertEqual(2, len(response.data))
         self.assertEqual('grigio', response.data[0]['word'])
         self.assertEqual('grego', response.data[1]['word'])
+
+    def test_search_is_paginated(self):
+        response = self.client.get('/api/v1/catalog/es-wines/', {
+            'limit': 1,
+            'offset': 1,
+        })
+        # Count is equal to total number of results in database
+        # We're loading 4 wines into the database via fixtures
+        self.assertEqual(4, response.data['count'])
+        self.assertEqual(1, len(response.data['results']))
+        self.assertIsNotNone(response.data['previous'])
+        self.assertIsNotNone(response.data['next'])
 
     def tearDown(self):
         # Stop patching

@@ -1,11 +1,16 @@
-[
-  {
-    "id": "ecf8760a-d139-4d63-83bc-6ddbac9f87dc",
-    "country": "US",
-    "description": "A youthful, exciting wine that offers plenty of earth and cassis.",
-    "points": 92,
-    "price": "65.00",
-    "variety": "Cabernet Sauvignon",
-    "winery": "Staglin"
-  }
-]
+{
+  "count": 2,
+  "next": "http://localhost:8003/api/v1/catalog/wines/?country=&limit=1&offset=1&points=&query=cabernet",
+  "previous": null,
+  "results": [
+    {
+      "id": "ecf8760a-d139-4d63-83bc-6ddbac9f87dc",
+      "country": "US",
+      "description": "A youthful, exciting wine that offers plenty of earth and cassis.",
+      "points": 92,
+      "price": "65.00",
+      "variety": "Cabernet Sauvignon",
+      "winery": "Staglin"
+    }
+  ]
+}

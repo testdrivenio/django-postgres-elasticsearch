@@ -48,15 +48,17 @@ function Paginator ({ results, search }) {
     <div className='align-items-center d-flex flex-row'>
       <Pagination className='p-2'>
         <Pagination.First 
-          disabled={results?.previous === null} 
+          data-cy='previous-button'
+          disabled={results?.previous === null}
           onClick={loadPreviousPage}
         />
         <Pagination.Last 
+          data-cy='next-button'
           disabled={results?.next === null} 
           onClick={loadNextPage}
         />
       </Pagination>
-      <p className='text-muted'>
+      <p className='text-muted' data-cy='page-count'>
         {currentPage} of {totalPages} pages
       </p>
     </div>
