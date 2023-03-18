@@ -2,23 +2,45 @@ import uuid
 
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import (
-    SearchQuery, SearchRank, SearchVectorField, TrigramSimilarity
+    SearchHeadline,
+    SearchQuery,
+    SearchRank,
+    SearchVectorField,
+    TrigramSimilarity,
 )
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import F
 
 
-class WineQuerySet(models.query.QuerySet):
+class WineQuerySet(models.query.QuerySet): # new
     def search(self, query):
-        search_query = Q(
-            Q(search_vector=SearchQuery(query))
-        )
+        search_query = SearchQuery(query, search_type='plain')
         return self.annotate(
-            variety_headline=SearchHeadline(F('variety'), SearchQuery(query)),
-            winery_headline=SearchHeadline(F('winery'), SearchQuery(query)),
-            description_headline=SearchHeadline(F('description'), SearchQuery(query)),
-            search_rank=SearchRank(F('search_vector'), SearchQuery(query))
-        ).filter(search_query).order_by('-search_rank', 'id')
+            variety_headline=SearchHeadline(
+                expression=F('variety'),
+                highlight_all=True,
+                query=search_query,
+                start_sel='<mark>',
+                stop_sel='</mark>',
+            ),
+            winery_headline=SearchHeadline(
+                expression=F('winery'),
+                highlight_all=True,
+                query=search_query,
+                start_sel='<mark>',
+                stop_sel='</mark>',
+            ),
+            description_headline=SearchHeadline(
+                expression=F('description'),
+                highlight_all=True,
+                query=search_query,
+                start_sel='<mark>',
+                stop_sel='</mark>',
+            ),
+            search_rank=SearchRank(F('search_vector'), search_query),
+        ).filter(
+            search_vector=search_query,
+        ).order_by('-search_rank', 'id')
 
 
 class Wine(models.Model):
@@ -31,7 +53,7 @@ class Wine(models.Model):
     winery = models.CharField(max_length=255)
     search_vector = SearchVectorField(null=True, blank=True)
 
-    objects = WineQuerySet.as_manager()
+    objects = WineQuerySet.as_manager() # new
 
     class Meta:
         indexes = [
@@ -42,10 +64,11 @@ class Wine(models.Model):
         return f'{self.id}'
 
 
-class SearchHeadline(models.Func):
-    function = 'ts_headline'
-    output_field = models.TextField()
-    template = '%(function)s(%(expressions)s, \'StartSel = <mark>, StopSel = </mark>, HighlightAll=TRUE\')'
+class WineSearchWord(models.Model):
+    word = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.word
 
 
 class WineSearchWordQuerySet(models.query.QuerySet):
@@ -58,7 +81,7 @@ class WineSearchWordQuerySet(models.query.QuerySet):
 class WineSearchWord(models.Model):
     word = models.CharField(max_length=255, unique=True)
 
-    objects = WineSearchWordQuerySet.as_manager()
+    objects = WineSearchWordQuerySet.as_manager() # new
 
     def __str__(self):
         return self.word

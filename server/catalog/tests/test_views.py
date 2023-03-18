@@ -1,6 +1,7 @@
 import json
 import pathlib
-from unittest.mock import patch
+from unittest.mock import patch # new
+from urllib.parse import parse_qs, urlsplit
 import uuid
 
 from django.conf import settings
@@ -9,7 +10,7 @@ from django.contrib.postgres.search import SearchVector
 from elasticsearch_dsl import connections
 from rest_framework.test import APIClient, APITestCase
 
-from catalog.constants import ES_MAPPING
+from catalog.constants import ES_MAPPING # new
 from catalog.models import Wine, WineSearchWord
 from catalog.serializers import WineSerializer
 
@@ -33,17 +34,23 @@ class ViewTests(APITestCase):
         self.assertJSONEqual(response.content, WineSerializer(wines, many=True).data)
 
     def test_query_matches_variety(self):
-        response = self.client.get('/api/v1/catalog/pg-wines/?query=Cabernet')
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'query': 'Cabernet',
+        })
         self.assertEquals(1, len(response.data))
         self.assertEquals("58ba903f-85ff-45c2-9bac-6d0732544841", response.data[0]['id'])
 
     def test_query_matches_winery(self):
-      response = self.client.get('/api/v1/catalog/pg-wines/?query=Barnard')
-      self.assertEquals(1, len(response.data))
-      self.assertEquals("21e40285-cec8-417c-9a26-4f6748b7fa3a", response.data[0]['id'])
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'query': 'Barnard'
+        })
+        self.assertEquals(1, len(response.data))
+        self.assertEquals("21e40285-cec8-417c-9a26-4f6748b7fa3a", response.data[0]['id'])
 
     def test_query_matches_description(self):
-        response = self.client.get('/api/v1/catalog/pg-wines/?query=wine')
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'query': 'wine',
+        })
         self.assertEquals(4, len(response.data))
         self.assertCountEqual([
             "58ba903f-85ff-45c2-9bac-6d0732544841",
@@ -53,7 +60,9 @@ class ViewTests(APITestCase):
         ], [item['id'] for item in response.data])
 
     def test_can_filter_on_country(self):
-        response = self.client.get('/api/v1/catalog/pg-wines/?country=France')
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'country': 'France',
+        })
         self.assertEquals(2, len(response.data))
         self.assertCountEqual([
             "0082f217-3300-405b-abc6-3adcbecffd67",
@@ -61,17 +70,35 @@ class ViewTests(APITestCase):
         ], [item['id'] for item in response.data])
 
     def test_can_filter_on_points(self):
-        response = self.client.get('/api/v1/catalog/pg-wines/?points=87')
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'points': 87,
+        })
         self.assertEquals(1, len(response.data))
         self.assertEquals("21e40285-cec8-417c-9a26-4f6748b7fa3a", response.data[0]['id'])
 
     def test_country_must_be_exact_match(self):
-        response = self.client.get('/api/v1/catalog/pg-wines/?country=Frances')
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'country': 'Frances',
+        })
         self.assertEquals(0, len(response.data))
         self.assertJSONEqual(response.content, [])
 
+    def test_search_can_be_paginated(self):
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'limit': 1,
+            'offset': 1,
+        })
+        # Count is equal to total number of results in database
+        # We're loading 4 wines into the database via fixtures
+        self.assertEqual(4, response.data['count'])
+        self.assertEqual(1, len(response.data['results']))
+        self.assertIsNotNone(response.data['previous'])
+        self.assertIsNotNone(response.data['next'])
+
     def test_search_results_returned_in_correct_order(self):
-        response = self.client.get('/api/v1/catalog/pg-wines/?query=Chardonnay')
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'query': 'Chardonnay',
+        })
         self.assertEquals(2, len(response.data))
         self.assertListEqual([
             "0082f217-3300-405b-abc6-3adcbecffd67",
@@ -90,7 +117,9 @@ class ViewTests(APITestCase):
         self.assertEqual("'charl':3A 'grigio':2A 'pinot':1A 'shaw':4A", wine.search_vector)
 
     def test_description_highlights_matched_words(self):
-        response = self.client.get('/api/v1/catalog/pg-wines/?query=wine')
+        response = self.client.get('/api/v1/catalog/pg-wines/', {
+            'query': 'wine',
+        })
         self.assertEquals('A creamy <mark>wine</mark> with full Chardonnay flavors.', response.data[0]['description'])
 
     def test_wine_search_words_populated_on_save(self):
@@ -121,7 +150,9 @@ class ViewTests(APITestCase):
             WineSearchWord(word='noir'),
             WineSearchWord(word='merlot'),
         ])
-        response = self.client.get('/api/v1/catalog/pg-wine-search-words/?query=greegio')
+        response = self.client.get('/api/v1/catalog/pg-wine-search-words/', {
+            'query': 'greegio',
+        })
         self.assertEqual(1, len(response.data))
         self.assertEqual('grigio', response.data[0]['word'])
 
@@ -153,36 +184,97 @@ class ESViewTests(APITestCase):
                     'winery': fields['winery'],
                 }, refresh=True)
 
-        # Start patching
+        # Start patching - new
         self.mock_constants = patch('catalog.views.constants').start()
         self.mock_constants.ES_INDEX = self.index
 
+    # changed
     def test_query_matches_variety(self):
-        response = self.client.get('/api/v1/catalog/es-wines/?query=Cabernet')
-        self.assertEquals(1, len(response.data))
-        self.assertEquals("58ba903f-85ff-45c2-9bac-6d0732544841", response.data[0]['id'])
+        response = self.client.get('/api/v1/catalog/es-wines/', {
+            'query':'Cabernet',
+        })
+        results = response.data['results']
+        self.assertEquals(1, len(results))
+        self.assertEquals("58ba903f-85ff-45c2-9bac-6d0732544841", results[0]['id'])
 
+    # changed
+    def test_no_previous_page_for_first_page_of_results(self):
+        response = self.client.get('/api/v1/catalog/es-wines/', {
+            'limit': 1,
+            'offset': 0, # first page of results
+            'query': 'wine',
+        })
+        self.assertIsNone(response.data['previous'])
+
+    # changed
+    def test_previous_page(self):
+        response = self.client.get('/api/v1/catalog/es-wines/', {
+            'limit': 1,
+            'offset': 1,
+            'query': 'wine',
+        })
+
+        # Extract `offset` from `previous` URL
+        previous = urlsplit(response.data['previous'])
+        query_params = parse_qs(previous.query)
+        offset = int(query_params['offset'][0])
+
+        self.assertEquals(0, offset)
+
+    # changed
+    def test_no_next_page_for_last_page_of_results(self):
+        response = self.client.get('/api/v1/catalog/es-wines/', {
+            'limit': 1,
+            'offset': 3, # last page of results
+            'query': 'wine',
+        })
+        self.assertIsNone(response.data['next'])
+
+    # changed
+    def test_next_page(self):
+        response = self.client.get('/api/v1/catalog/es-wines/', {
+            'limit': 1,
+            'offset': 1,
+            'query': 'wine',
+        })
+
+        # Extract `offset` from `next` URL
+        next = urlsplit(response.data['next'])
+        query_params = parse_qs(next.query)
+        offset = int(query_params['offset'][0])
+
+        self.assertEquals(2, offset)
+
+    # changed
     def test_search_results_returned_in_correct_order(self):
-        response = self.client.get('/api/v1/catalog/es-wines/?query=Chardonnay')
-        self.assertEquals(2, len(response.data))
+        response = self.client.get('/api/v1/catalog/es-wines/', {
+            'query': 'Chardonnay',
+        })
+        results = response.data['results']
+        self.assertEquals(2, len(results))
         self.assertListEqual([
             "0082f217-3300-405b-abc6-3adcbecffd67",
             "000bbdff-30fc-4897-81c1-7947e11e6d1a",
-        ], [item['id'] for item in response.data])
+        ], [item['id'] for item in results])
 
     def test_description_highlights_matched_words(self):
-        response = self.client.get('/api/v1/catalog/es-wines/?query=wine')
-        self.assertEquals('A delicious bottle of <mark>wine</mark>.', response.data[0]['description'])
+        response = self.client.get('/api/v1/catalog/es-wines/', {
+            'query': 'wine',
+        })
+        results = response.data['results']
+        self.assertEquals('A delicious bottle of <mark>wine</mark>.', results[0]['description'])
 
     def test_suggests_words_for_spelling_mistakes(self):
-        response = self.client.get('/api/v1/catalog/es-wine-search-words/?query=greegio')
+        response = self.client.get('/api/v1/catalog/es-wine-search-words/', {
+            'query': 'greegio',
+        })
         # Suggestions are: "grigio" (freq=1483) and "grego" (freq=1)
         self.assertEqual(2, len(response.data))
         self.assertEqual('grigio', response.data[0]['word'])
         self.assertEqual('grego', response.data[1]['word'])
 
     def tearDown(self):
-        # Stop patching
+        # Stop patching - new
         self.mock_constants.stop()
 
         self.connection.indices.delete(index=self.index)

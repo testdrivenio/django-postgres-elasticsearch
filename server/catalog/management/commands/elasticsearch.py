@@ -47,3 +47,4 @@ class Command(BaseCommand):
         self.stdout.write(f'Bulk updating documents on "{ES_INDEX}" index...')
         succeeded, _ = bulk(connection, actions=self._document_generator(), stats_only=True)
         self.stdout.write(f'Updated {succeeded} documents on "{ES_INDEX}" successfully')
+        

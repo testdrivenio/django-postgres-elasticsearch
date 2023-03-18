@@ -5,24 +5,21 @@ import './App.css';
 import axios from 'axios';
 import { Col, Container, Row } from 'react-bootstrap';
 
+import Paginator from './components/Paginator'; // new
 import ResultList from './components/ResultList';
 import Search from './components/Search';
 
 function App () {
-  const [results, setResults] = useState([]);
+  const [paginatedData, setPaginatedData] = useState([]); // changed
 
-  const search = async (country, points, query) => {
+  const search = async (params /* changed */) => {
     try {
       const response = await axios({
         method: 'get',
         url: 'http://localhost:8003/api/v1/catalog/wines/',
-        params: {
-          country,
-          points,
-          query
-        }
+        params, // changed
       });
-      setResults(response.data);
+      setPaginatedData(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -39,7 +36,12 @@ function App () {
           <Search search={search} />
         </Col>
         <Col lg={8}>
-          <ResultList results={results} />
+          {/* new */}
+          {(paginatedData?.count ?? 0) > 0 && (
+            <Paginator paginatedData={paginatedData} search={search} />
+          )}
+          {/* changed */}
+          <ResultList results={paginatedData?.results ?? []} />
         </Col>
       </Row>
     </Container>

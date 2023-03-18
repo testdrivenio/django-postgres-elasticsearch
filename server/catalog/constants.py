@@ -6,6 +6,7 @@ ES_MAPPING = {
         'variety': {
             'type': 'text',
             'analyzer': 'english',
+            # new
             'copy_to': 'all_text',
         },
         'country': {
@@ -17,16 +18,19 @@ ES_MAPPING = {
         'winery': {
             'type': 'text',
             'analyzer': 'english',
+            # new
             'copy_to': 'all_text',
         },
         'description': {
             'type': 'text',
             'analyzer': 'english',
+            # new
             'copy_to': 'all_text',
         },
         'points': {
             'type': 'float',
         },
+        # new
         'all_text': {
             'type': 'text',
         },

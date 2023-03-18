@@ -8,12 +8,13 @@ services:
       - POSTGRES_DB=perusable
       - POSTGRES_USER=perusable
       - POSTGRES_PASSWORD=perusable
-    image: postgres:15.1-alpine
+    image: postgres:15.2-alpine
     ports:
       - "5433:5432"
     volumes:
       - perusable-database:/var/lib/postgresql/data
 
+  # new
   elasticsearch:
     container_name: perusable-elasticsearch
     environment:
@@ -22,7 +23,7 @@ services:
       - discovery.type=single-node
       # WARNING: Enable X-Pack security for production builds
       - xpack.security.enabled=false
-    image: elasticsearch:7.17.7
+    image: elasticsearch:7.17.9
     ports:
       - 9200:9200
     volumes:
@@ -34,7 +35,7 @@ services:
     container_name: perusable-server
     depends_on:
       - database
-      - elasticsearch
+      - elasticsearch # new
     environment:
       - SQL_ENGINE=django.db.backends.postgresql
       - SQL_DATABASE=perusable
@@ -42,7 +43,7 @@ services:
       - SQL_PASSWORD=perusable
       - SQL_HOST=perusable-database
       - SQL_PORT=5432
-      - ES_HOSTS=http://perusable-elasticsearch:9200
+      - ES_HOSTS=http://perusable-elasticsearch:9200 # new
     command: [ "bash", "start.sh" ]
     ports:
       - 8003:8000
