@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Pagination } from 'react-bootstrap';
 
-function Paginator ({ paginatedData, search /* changed */ }) {
+function Paginator ({ paginatedData, search }) {
   const { currentPage, totalPages } = getPageData();
 
   function parseUrlSearchParams (urlString) {
@@ -35,7 +35,6 @@ function Paginator ({ paginatedData, search /* changed */ }) {
     return { currentPage: 1, totalPages: 1 };
   };
 
-  // new
   async function loadPreviousPage () {
     if (paginatedData?.previous !== null) {
       const urlSearchParams = parseUrlSearchParams(paginatedData?.previous);
@@ -43,7 +42,6 @@ function Paginator ({ paginatedData, search /* changed */ }) {
     }
   };
 
-  // new
   async function loadNextPage () {
     if (paginatedData?.next !== null) {
       const urlSearchParams = parseUrlSearchParams(paginatedData?.next);
@@ -54,13 +52,11 @@ function Paginator ({ paginatedData, search /* changed */ }) {
   return (
     <div className='align-items-center d-flex flex-row'>
       <Pagination className='p-2'>
-        {/* changed */}
         <Pagination.Prev
           data-cy='previous-button'
           disabled={paginatedData?.previous === null}
           onClick={loadPreviousPage}
         />
-        {/* changed */}
         <Pagination.Next
           data-cy='next-button'
           disabled={paginatedData?.next === null}

@@ -1,6 +1,5 @@
 from django.urls import path
 
-# changed
 from .views import (
     WinesView,
     WineSearchWordsView,
@@ -8,7 +7,6 @@ from .views import (
     ESWineSearchWordsView,
 )
 
-# changed
 urlpatterns = [
     path('wines/', ESWinesView.as_view()),
     path('es-wines/', ESWinesView.as_view()),

@@ -6,7 +6,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import constants # new
+from . import constants
 from .models import Wine, WineSearchWord
 from .serializers import WineSerializer, WineSearchWordSerializer
 from .filters import WineFilterSet, WineSearchWordFilterSet
@@ -90,12 +90,12 @@ class ESWinesView(APIView):
             q['minimum_should_match'] = 1
 
             # Build highlighting.
-            search = search.highlight_options( # new
+            search = search.highlight_options(
                 number_of_fragments=0,
                 pre_tags=['<mark>'],
                 post_tags=['</mark>']
             )
-            search = search.highlight('variety', 'winery', 'description') # new
+            search = search.highlight('variety', 'winery', 'description')
 
         # Build filter clause.
         if country:
@@ -119,7 +119,7 @@ class ESWinesView(APIView):
                 'offset': offset,
                 'query': query,
             }),
-            'results': [{ # changed
+            'results': [{
                 'id': hit.meta.id,
                 'country': hit.country,
                 'description': (

@@ -1,6 +1,6 @@
 from django_filters.rest_framework import CharFilter, FilterSet
 
-from .models import Wine, WineSearchWord # changed
+from .models import Wine, WineSearchWord
 
 
 class WineFilterSet(FilterSet):
@@ -14,7 +14,6 @@ class WineFilterSet(FilterSet):
         fields = ('query', 'country', 'points',)
 
 
-# new
 class WineSearchWordFilterSet(FilterSet):
     query = CharFilter(method='filter_query')
 

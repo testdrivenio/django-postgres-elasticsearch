@@ -12,7 +12,7 @@ from django.db import models
 from django.db.models import F
 
 
-class WineQuerySet(models.query.QuerySet): # new
+class WineQuerySet(models.query.QuerySet):
     def search(self, query):
         search_query = SearchQuery(query, search_type='plain')
         return self.annotate(
@@ -53,7 +53,7 @@ class Wine(models.Model):
     winery = models.CharField(max_length=255)
     search_vector = SearchVectorField(null=True, blank=True)
 
-    objects = WineQuerySet.as_manager() # new
+    objects = WineQuerySet.as_manager()
 
     class Meta:
         indexes = [
@@ -81,7 +81,7 @@ class WineSearchWordQuerySet(models.query.QuerySet):
 class WineSearchWord(models.Model):
     word = models.CharField(max_length=255, unique=True)
 
-    objects = WineSearchWordQuerySet.as_manager() # new
+    objects = WineSearchWordQuerySet.as_manager()
 
     def __str__(self):
         return self.word

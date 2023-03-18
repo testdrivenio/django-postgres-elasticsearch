@@ -1,13 +1,13 @@
-import React, { useState } from 'react'; // changed
+import React, { useState } from 'react';
 
-import axios from 'axios'; // new
+import axios from 'axios';
 import { Formik } from 'formik';
 import { Button, Col, Form, Row } from 'react-bootstrap';
-import { AsyncTypeahead } from 'react-bootstrap-typeahead'; // new
+import { AsyncTypeahead } from 'react-bootstrap-typeahead';
 
 function Search ({ search }) {
-  const [isLoading, setLoading] = useState(false); // new
-  const [options, setOptions] = useState([]); // new
+  const [isLoading, setLoading] = useState(false);
+  const [options, setOptions] = useState([]);
 
   const wineSearchWord = async query => {
     if (query.length < 3) {
@@ -34,7 +34,6 @@ function Search ({ search }) {
   };
 
   const onSubmit = async (values, actions) => {
-    // changed
     await search({
       country: values.country,
       limit: 10,

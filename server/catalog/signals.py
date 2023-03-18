@@ -1,5 +1,5 @@
 from django.contrib.postgres.search import SearchVector
-from django.db import connection # new
+from django.db import connection
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -14,7 +14,6 @@ def on_wine_save(sender, instance, *args, **kwargs):
         SearchVector('description', weight='B')
     ))
 
-    # new
     with connection.cursor() as cursor:
         cursor.execute("""
             INSERT INTO catalog_winesearchword (word)

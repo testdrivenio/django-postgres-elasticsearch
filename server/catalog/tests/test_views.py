@@ -1,6 +1,6 @@
 import json
 import pathlib
-from unittest.mock import patch # new
+from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 import uuid
 
@@ -10,7 +10,7 @@ from django.contrib.postgres.search import SearchVector
 from elasticsearch_dsl import connections
 from rest_framework.test import APIClient, APITestCase
 
-from catalog.constants import ES_MAPPING # new
+from catalog.constants import ES_MAPPING
 from catalog.models import Wine, WineSearchWord
 from catalog.serializers import WineSerializer
 
@@ -184,11 +184,10 @@ class ESViewTests(APITestCase):
                     'winery': fields['winery'],
                 }, refresh=True)
 
-        # Start patching - new
+        # Start patching
         self.mock_constants = patch('catalog.views.constants').start()
         self.mock_constants.ES_INDEX = self.index
 
-    # changed
     def test_query_matches_variety(self):
         response = self.client.get('/api/v1/catalog/es-wines/', {
             'query':'Cabernet',
@@ -197,7 +196,6 @@ class ESViewTests(APITestCase):
         self.assertEquals(1, len(results))
         self.assertEquals("58ba903f-85ff-45c2-9bac-6d0732544841", results[0]['id'])
 
-    # changed
     def test_no_previous_page_for_first_page_of_results(self):
         response = self.client.get('/api/v1/catalog/es-wines/', {
             'limit': 1,
@@ -206,7 +204,6 @@ class ESViewTests(APITestCase):
         })
         self.assertIsNone(response.data['previous'])
 
-    # changed
     def test_previous_page(self):
         response = self.client.get('/api/v1/catalog/es-wines/', {
             'limit': 1,
@@ -221,7 +218,6 @@ class ESViewTests(APITestCase):
 
         self.assertEquals(0, offset)
 
-    # changed
     def test_no_next_page_for_last_page_of_results(self):
         response = self.client.get('/api/v1/catalog/es-wines/', {
             'limit': 1,
@@ -230,7 +226,6 @@ class ESViewTests(APITestCase):
         })
         self.assertIsNone(response.data['next'])
 
-    # changed
     def test_next_page(self):
         response = self.client.get('/api/v1/catalog/es-wines/', {
             'limit': 1,
@@ -245,7 +240,6 @@ class ESViewTests(APITestCase):
 
         self.assertEquals(2, offset)
 
-    # changed
     def test_search_results_returned_in_correct_order(self):
         response = self.client.get('/api/v1/catalog/es-wines/', {
             'query': 'Chardonnay',
@@ -274,7 +268,7 @@ class ESViewTests(APITestCase):
         self.assertEqual('grego', response.data[1]['word'])
 
     def tearDown(self):
-        # Stop patching - new
+        # Stop patching
         self.mock_constants.stop()
 
         self.connection.indices.delete(index=self.index)

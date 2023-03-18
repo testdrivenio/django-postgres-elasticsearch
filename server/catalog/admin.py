@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Wine, WineSearchWord # changed
+from .models import Wine, WineSearchWord
 
 
 @admin.register(Wine)
@@ -15,7 +15,7 @@ class WineAdmin(admin.ModelAdmin):
     readonly_fields = ('id',)
 
 
-@admin.register(WineSearchWord) # new
+@admin.register(WineSearchWord)
 class WineSearchWordAdmin(admin.ModelAdmin):
     fields = ('word',)
     list_display = ('word',)
